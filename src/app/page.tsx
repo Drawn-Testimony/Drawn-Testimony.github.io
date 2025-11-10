@@ -94,7 +94,7 @@ function MainMenu() {
               />
             </div>
           </div>
-          <div className="relative size-full">
+          <div className="relative size-full text-gray-950">
             <div className="size-full absolute overflow-hidden overflow-y-scroll flex items-center">
               <div className="flex gap-4 flex-col p-3 px-6 justify-center text-justify">
                 <div className="text-xl font-bold">
