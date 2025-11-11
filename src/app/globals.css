@@ -211,8 +211,32 @@ input:checked + .slider:before {
 
 .myPath:hover { 
   /* stroke: rgb(193, 38, 38); */
-  fill: rgba(220, 220, 220, 0.247);
+  fill: rgba(220, 220, 220, 0.247) !important;
   cursor: pointer;
   -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
   filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+}
+
+.fade-stroke-animation {
+  /* stroke: rgb(223, 164, 76);
+  stroke-width: 1px; */
+  animation: fillBreathing 2s ease-in-out forwards;
+}
+
+.fade-stroke-animation > path {
+  /* stroke: rgb(223, 164, 76);
+  stroke-width: 1px; */
+  animation: fillBreathing 2s ease-in-out forwards;
+}
+
+@keyframes fillBreathing {
+  0% {
+    fill: rgba(0, 0, 0, 0); /* White */
+  }
+  50% {
+    fill: rgba(226, 226, 226, 0.68); /* Transparent */
+  }
+  100% {
+    fill: rgba(0, 0, 0, 0); /* White */
+  }
 }

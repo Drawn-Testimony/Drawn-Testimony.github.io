@@ -137,31 +137,31 @@ export default function Painting(props: PaintingProps) {
   //   });
   // };
 
-  // const blinkStrokes = () => {
-  //   const elems = document.querySelectorAll(".cls-2");
-  //   /*  console.log(
-  //     Array.from(elems).sort((a, b) => {
-  //       return (
-  //         (a as HTMLElement).getBoundingClientRect().x -
-  //         (b as HTMLElement).getBoundingClientRect().x
-  //       );
-  //     })
-  //   ); */
+  const blinkStrokes = () => {
+    const elems = document.querySelectorAll(".myPath");
+    /*  console.log(
+      Array.from(elems).sort((a, b) => {
+        return (
+          (a as HTMLElement).getBoundingClientRect().x -
+          (b as HTMLElement).getBoundingClientRect().x
+        );
+      })
+    ); */
 
-  //   Array.from(elems)
-  //     .sort((a, b) => {
-  //       return (
-  //         (a as HTMLElement).getBoundingClientRect().x -
-  //         (b as HTMLElement).getBoundingClientRect().x
-  //       );
-  //     })
-  //     .forEach((el, index) => {
-  //       (el as HTMLElement).classList.remove("fade-stroke-animation");
-  //       setTimeout(function () {
-  //         (el as HTMLElement).classList.add("fade-stroke-animation");
-  //       }, index * 100);
-  //     });
-  // };
+    Array.from(elems)
+      .sort((a, b) => {
+        return (
+          (a as HTMLElement).getBoundingClientRect().x -
+          (b as HTMLElement).getBoundingClientRect().x
+        );
+      })
+      .forEach((el, index) => {
+        (el as HTMLElement).classList.remove("fade-stroke-animation");
+        setTimeout(function () {
+          (el as HTMLElement).classList.add("fade-stroke-animation");
+        }, index * 150);
+      });
+  };
 
   const animateViewBox = (
     svg: SVGSVGElement,
@@ -313,6 +313,16 @@ export default function Painting(props: PaintingProps) {
         element.classList.add("myPath");
         element.addEventListener("click", clickHandler);
       });
+
+      resetView();
+
+      // return () => {
+      //   if (paths) {
+      //     paths.forEach((element) => {
+      //       element.removeEventListener("click", clickHandler);
+      //     });
+      //   }
+      // };
     }
   }, [svgRef.current, loaded]);
 
@@ -321,9 +331,10 @@ export default function Painting(props: PaintingProps) {
       <div className="absolute size-full">
         <div
           className="size-full flex justify-center resize-none relative"
-          // onClick={(e) => {
-          //   resetView();
-          // }}
+          onClick={(e) => {
+            resetView();
+            blinkStrokes();
+          }}
           ref={svgRef}
         >
           <SVG

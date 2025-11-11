@@ -38,7 +38,13 @@ function MainMenu() {
         annotations={[]}
       /> */}
       <div className="absolute top-0 left-0 h-16 w-full z-50 flex px-2">
-        <Link className="relative w-25" href={"/"}>
+        <Link
+          className="relative w-25"
+          href={"/"}
+          onClick={() => {
+            dispatch(setMode("default"));
+          }}
+        >
           <Image
             src="/assets/cropped-logoOctober-1.png"
             fill={true}
