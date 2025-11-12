@@ -310,14 +310,18 @@ export default function Painting(props: PaintingProps) {
   //   }
   // }, [svgRef.current]);
 
-  const [svgWrapperSize, setSvgWrapperSize] = useState(null);
+  const [svgWrapperSize, setSvgWrapperSize] = useState<DOMRectReadOnly | null>(
+    null
+  );
 
   useEffect(() => {
     if (!svgRef.current) return;
     const resizeObserver = new ResizeObserver((nodes) => {
       // Do what you want to do when the size of the element changes
       setSvgWrapperSize(
-        nodes[0]?.contentRect ?? nodes[0]?.getBoundingClientRect() ?? null
+        nodes[0]?.contentRect ??
+          (nodes[0].target as HTMLElement)?.getBoundingClientRect() ??
+          null
       );
     });
     resizeObserver.observe(svgRef.current);
@@ -326,15 +330,21 @@ export default function Painting(props: PaintingProps) {
 
   useEffect(() => {
     if (svgWrapperSize != null) {
-      const svg = document.getElementById("svg6") as SVGSVGElement;
+      const svg = document.querySelector("svg") as SVGSVGElement;
       if (svg != null) {
         (svg as SVGSVGElement).setAttribute(
           "orig-viewbox",
           `0 0 ${svgWrapperSize.width} ${svgWrapperSize.height}`
         );
 
-        (svg as SVGSVGElement).setAttribute("width", svgWrapperSize.width);
-        (svg as SVGSVGElement).setAttribute("height", svgWrapperSize.height);
+        (svg as SVGSVGElement).setAttribute(
+          "width",
+          svgWrapperSize.width.toString()
+        );
+        (svg as SVGSVGElement).setAttribute(
+          "height",
+          svgWrapperSize.height.toString()
+        );
       }
 
       // const paperRect = document.getElementById("paper-rect");
