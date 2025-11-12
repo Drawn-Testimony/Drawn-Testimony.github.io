@@ -89,7 +89,7 @@ export default function Painting(props: PaintingProps) {
         (element as HTMLElement).classList.add("highlighted");
         const bbox = (element as SVGGraphicsElement).getBBox();
         const padding =
-          (parseInt(svg.getAttribute("width") as string) / 100) * 15;
+          (parseInt(svg.getAttribute("width") as string) / 200) * 15;
 
         const x = bbox.x - padding;
         const y = bbox.y - padding;
@@ -108,10 +108,14 @@ export default function Painting(props: PaintingProps) {
         (el as HTMLElement).classList.remove("highlighted");
       });
 
+      const rec = (svgRef.current as SVGGraphicsElement).querySelector(
+        "#viewbox-rect"
+      );
       const svg = (svgRef.current as SVGGraphicsElement).querySelector("svg");
-      if (svg != null) {
-        const width = svg.getBBox().width;
-        const height = svg.getBBox().height;
+      if (rec != null && svg != null) {
+        const width = rec.getAttribute("width");
+        const height = rec.getAttribute("height");
+
         animateViewBox(svg, getViewBoxArray(svg), [0, 0, width, height], 500);
       }
     }
@@ -120,7 +124,7 @@ export default function Painting(props: PaintingProps) {
   // Helper functions for viewBox animation
   const getViewBoxArray = (svg: SVGSVGElement) => {
     if (svg != null) {
-      return svg.getAttribute("viewBox")!.split(" ").map(Number);
+      return svg.getAttribute("viewBox")?.split(" ")?.map(Number);
     }
   };
 
@@ -306,6 +310,49 @@ export default function Painting(props: PaintingProps) {
   //   }
   // }, [svgRef.current]);
 
+  const [svgWrapperSize, setSvgWrapperSize] = useState(null);
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const resizeObserver = new ResizeObserver((nodes) => {
+      // Do what you want to do when the size of the element changes
+      setSvgWrapperSize(
+        nodes[0]?.contentRect ?? nodes[0]?.getBoundingClientRect() ?? null
+      );
+    });
+    resizeObserver.observe(svgRef.current);
+    return () => resizeObserver.disconnect(); // clean up
+  }, []);
+
+  useEffect(() => {
+    if (svgWrapperSize != null) {
+      const svg = document.getElementById("svg6") as SVGSVGElement;
+      if (svg != null) {
+        (svg as SVGSVGElement).setAttribute(
+          "orig-viewbox",
+          `0 0 ${svgWrapperSize.width} ${svgWrapperSize.height}`
+        );
+
+        (svg as SVGSVGElement).setAttribute("width", svgWrapperSize.width);
+        (svg as SVGSVGElement).setAttribute("height", svgWrapperSize.height);
+      }
+
+      // const paperRect = document.getElementById("paper-rect");
+      // if (paperRect) {
+      //   (paperRect as SVGSVGElement).setAttribute("x", -svgWrapperSize.width);
+      //   (paperRect as SVGSVGElement).setAttribute("y", -svgWrapperSize.height);
+      //   (paperRect as SVGSVGElement).setAttribute(
+      //     "width",
+      //     svgWrapperSize.width * 2
+      //   );
+      //   (paperRect as SVGSVGElement).setAttribute(
+      //     "height",
+      //     svgWrapperSize.height * 2
+      //   );
+      // }
+    }
+  }, [svgWrapperSize]);
+
   useEffect(() => {
     if (svgRef.current != null) {
       const paths = (svgRef.current as SVGSVGElement).querySelectorAll("path");
@@ -333,7 +380,7 @@ export default function Painting(props: PaintingProps) {
           className="size-full flex justify-center resize-none relative"
           onClick={(e) => {
             resetView();
-            blinkStrokes();
+            // blinkStrokes();
           }}
           ref={svgRef}
         >
@@ -343,6 +390,9 @@ export default function Painting(props: PaintingProps) {
             }}
             src={svgFile}
             className="size-full object-contain absolute"
+            // style={{
+            //   backgroundImage: "url('/assets/paper-texture.jpg')",
+            // }}
           />
           {/* <MySVG
         className={`painting size-full object-contain absolute ${

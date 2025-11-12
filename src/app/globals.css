@@ -145,6 +145,7 @@ input:checked + .slider:before {
 .painting-main {
     background: #ffffff;
     /* background-image: url(/assets/paper-texture.jpg); */
+    /* filter: url(#roughpaper); */
 }
 
 .scroll-downs {
@@ -210,11 +211,13 @@ input:checked + .slider:before {
 }
 
 .myPath:hover { 
-  /* stroke: rgb(193, 38, 38); */
-  fill: rgba(220, 220, 220, 0.247) !important;
+  stroke: rgb(0, 0, 0);
+  stroke-width: 2px;
+  stroke-opacity: 50%;
+  fill: rgba(238, 238, 238, 0.1) !important;
   cursor: pointer;
-  -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
-  filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+  -webkit-filter: drop-shadow( 0px 0px 70px rgba(0, 0, 0, .7));
+  filter: drop-shadow( 0px 0px 70px rgba(0, 0, 0, .7));
 }
 
 .fade-stroke-animation {

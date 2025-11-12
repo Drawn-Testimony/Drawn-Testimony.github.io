@@ -18,6 +18,7 @@ import Link from "next/link";
 const paintings = [
   <Painting key={"transport"} svgFile={"/images/Transport scene-1.svg"} />,
   <Painting key={"soccer"} svgFile={"/images/Soccer scene-1 orig.svg"} />,
+  // <Painting key={"soccer v2"} svgFile={"/images/Soccer scene-2 orig.svg"} />,
 ];
 
 function MainMenu() {
