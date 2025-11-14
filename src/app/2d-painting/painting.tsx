@@ -1,21 +1,12 @@
 "use client";
 
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import SVG from "react-inlinesvg";
 // import MySVG from "../../../public/assets/6000px Ervin Abadi Perpective view B-B all duplicated layers 2.svg";
 // import explorationDataEn from "../locales/en/translation.json";
 // import { PaintingContext } from "./painting.context";
 // import shortid from "shortid";
 // import { useTranslation } from "react-i18next";
-import { CursorArrowRaysIcon } from "@heroicons/react/24/outline";
-import path from "path";
 
 const storyPathMapping = {
   kitchen: "path310",
@@ -39,8 +30,8 @@ const pathStoryMapping = {
   writing_Image_copy: "documentation",
 } as Record<string, string>;
 
-function getSvgDimensionsFromString(svgString) {
-  const readAttr = (name) => {
+function getSvgDimensionsFromString(svgString: string) {
+  const readAttr = (name: string) => {
     const regex = new RegExp(`${name}\\s*=\\s*"([^"]+)"`);
     const match = svgString.match(regex);
     return match ? parseFloat(match[1]) : undefined;
@@ -437,13 +428,13 @@ export default function Painting(props: PaintingProps) {
               code = code.replaceAll(
                 "</svg>",
                 `<filter id='roughpaper'><feTurbulence type="fractalNoise" baseFrequency='0.04' result='noise' numOctaves="5" /><feDiffuseLighting in='noise' lighting-color='#fff' surfaceScale='2'><feDistantLight azimuth='45' elevation='60' /></feDiffuseLighting></filter><rect id="paper-rect" x="-50%" y="-50%" width="${
-                  svgSize.width * 2
+                  (svgSize.width as number) * 2
                 }" height="${
-                  svgSize.height * 2
+                  (svgSize.height as number) * 2
                 }" filter="url(#roughpaper)" opacity="0.3" pointer-events="none"/><rect id="viewbox-rect" x="0" y="0" width="${
-                  svgSize.width
+                  svgSize.width as number
                 }" height="${
-                  svgSize.height
+                  svgSize.height as number
                 }" fill="transparent" pointer-events="none"/>`
               );
               return code;

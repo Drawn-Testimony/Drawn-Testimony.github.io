@@ -18,7 +18,7 @@ export default function RootLayout({
     <html className={lato.className} lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link
           href="https://fonts.googleapis.com/css2?family=Oooh+Baby&display=swap"
           rel="stylesheet"
