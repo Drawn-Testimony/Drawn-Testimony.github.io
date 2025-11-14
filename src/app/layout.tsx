@@ -16,7 +16,15 @@ export default function RootLayout({
 }) {
   return (
     <html className={lato.className} lang="en">
-      <body className="grid min-h-screen h-screen max-h-screen w-screen max-w-screen overflow-hidden">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Oooh+Baby&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="grid min-h-screen h-screen max-h-screen w-screen max-w-screen overflow-hidden myText">
         {children}
       </body>
     </html>

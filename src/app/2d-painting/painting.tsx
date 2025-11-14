@@ -39,6 +39,35 @@ const pathStoryMapping = {
   writing_Image_copy: "documentation",
 } as Record<string, string>;
 
+function getSvgDimensionsFromString(svgString) {
+  const readAttr = (name) => {
+    const regex = new RegExp(`${name}\\s*=\\s*"([^"]+)"`);
+    const match = svgString.match(regex);
+    return match ? parseFloat(match[1]) : undefined;
+  };
+
+  let width = readAttr("width");
+  let height = readAttr("height");
+
+  // If width or height are missing, fallback to viewBox
+  if (width == null || height == null) {
+    const viewBoxMatch = svgString.match(/viewBox\s*=\s*"([^"]+)"/);
+    if (viewBoxMatch) {
+      const parts = viewBoxMatch[1]
+        .trim()
+        .split(/[\s,]+/)
+        .map(Number);
+      if (parts.length === 4) {
+        const [, , vbWidth, vbHeight] = parts;
+        if (width == null) width = vbWidth;
+        if (height == null) height = vbHeight;
+      }
+    }
+  }
+
+  return { width, height };
+}
+
 export interface PaintingProps {
   svgFile: string;
 }
@@ -403,6 +432,22 @@ export default function Painting(props: PaintingProps) {
             // style={{
             //   backgroundImage: "url('/assets/paper-texture.jpg')",
             // }}
+            preProcessor={(code) => {
+              const svgSize = getSvgDimensionsFromString(code);
+              code = code.replaceAll(
+                "</svg>",
+                `<filter id='roughpaper'><feTurbulence type="fractalNoise" baseFrequency='0.04' result='noise' numOctaves="5" /><feDiffuseLighting in='noise' lighting-color='#fff' surfaceScale='2'><feDistantLight azimuth='45' elevation='60' /></feDiffuseLighting></filter><rect id="paper-rect" x="-50%" y="-50%" width="${
+                  svgSize.width * 2
+                }" height="${
+                  svgSize.height * 2
+                }" filter="url(#roughpaper)" opacity="0.3" pointer-events="none"/><rect id="viewbox-rect" x="0" y="0" width="${
+                  svgSize.width
+                }" height="${
+                  svgSize.height
+                }" fill="transparent" pointer-events="none"/>`
+              );
+              return code;
+            }}
           />
           {/* <MySVG
         className={`painting size-full object-contain absolute ${

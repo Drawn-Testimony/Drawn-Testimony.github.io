@@ -243,3 +243,9 @@ input:checked + .slider:before {
     fill: rgba(0, 0, 0, 0); /* White */
   }
 }
+
+.myText {
+  font-family: "Oooh Baby", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
