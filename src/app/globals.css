@@ -157,6 +157,54 @@ input:checked + .slider:before {
     background: #ffffff;
 }
 
+@keyframes word-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes content-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes media-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.word-reveal-item {
+  display: inline-block;
+  opacity: 0;
+  animation: word-reveal 420ms ease-out forwards;
+  animation-delay: var(--word-delay, 0ms);
+}
+
+.content-reveal {
+  opacity: 0;
+  animation: content-reveal 480ms ease-out 140ms forwards;
+}
+
+.story-paragraph {
+  min-height: 1lh;
+}
+
+.story-media-reveal {
+  opacity: 0;
+  animation: media-reveal 560ms ease-out 240ms forwards;
+}
+
 .painting-paper-overlay {
   background-image: url("/assets/paper-texture.jpg");
   background-position: center;
@@ -402,6 +450,13 @@ input:checked + .slider:before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .word-reveal-item,
+  .content-reveal,
+  .story-media-reveal {
+    animation: none;
+    opacity: 1;
+  }
+
   .tutorial-arrow,
   .tutorial-highlight {
     animation: none;
