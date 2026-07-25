@@ -2,7 +2,7 @@
 import { Noto_Serif, Reenie_Beanie } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import { setMode, setSelectedPainting } from "../../store/appSlice";
 import { State, store } from "../../store/store";
@@ -33,6 +33,36 @@ const paintings = [
   { key: "after", svgFile: "/images/11. After Theresienstadt.svg" },
 ];
 
+function AnimatedWords({
+  text,
+  delay = 0,
+  className = "",
+}: {
+  text: string;
+  delay?: number;
+  className?: string;
+}) {
+  const words = text.trim().split(/\s+/);
+
+  return (
+    <span className={`word-reveal ${className}`} aria-label={text}>
+      {words.map((word, index) => (
+        <span key={`${word}-${index}`} aria-hidden="true">
+          <span
+            className="word-reveal-item"
+            style={{
+              "--word-delay": `${delay + Math.min(index * 24, 600)}ms`,
+            } as CSSProperties}
+          >
+            {word}
+          </span>
+          {index < words.length - 1 ? " " : null}
+        </span>
+      ))}
+    </span>
+  );
+}
+
 function renderStoryParagraph(text: string, paragraphIndex: number) {
   const quotePattern = /quote\((.*?)\)/g;
   const parts = [];
@@ -41,17 +71,24 @@ function renderStoryParagraph(text: string, paragraphIndex: number) {
 
   while ((match = quotePattern.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      const prose = text.slice(lastIndex, match.index);
+      parts.push(
+        <AnimatedWords
+          key={`story-prose-${paragraphIndex}-${lastIndex}`}
+          text={prose}
+          delay={paragraphIndex * 70}
+        />
+      );
     }
 
     parts.push(
       <div
         key={`story-quote-${paragraphIndex}-${match.index}`}
-        className="w-full flex flex-row gap-3 items-center"
+        className="w-full flex flex-row gap-3 items-center content-reveal"
       >
         {getSteenPortrait()}
         <span className="italic">
-          "{match[1]}"
+          <AnimatedWords text={`"${match[1]}"`} delay={120} />
         </span>
       </div>
     );
@@ -60,15 +97,21 @@ function renderStoryParagraph(text: string, paragraphIndex: number) {
   }
 
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+    parts.push(
+      <AnimatedWords
+        key={`story-prose-${paragraphIndex}-${lastIndex}`}
+        text={text.slice(lastIndex)}
+        delay={paragraphIndex * 70}
+      />
+    );
   }
 
-  return parts.length > 0 ? parts : text;
+  return parts.length > 0 ? parts : <AnimatedWords text={text} />;
 }
 
 function renderStoryText(text: string) {
   return text.split("\n").map((paragraph, i) => (
-    <div key={`story-text-${i}`}>
+    <div key={`story-text-${i}`} className="story-paragraph">
       {renderStoryParagraph(paragraph, i)}
     </div>
   ));
@@ -169,31 +212,37 @@ function MainMenu() {
 
   const renderContent = useCallback((story: any, dataView: any, inactive = false, selectedGroup: string | null = null) => {
     return <>
-      <div className={`text-xl ${noto_serif.className}`}>
+      <div className={`text-xl story-heading ${noto_serif.className}`}>
         {story.title
           ? story.title
             .split("\n")
-            .map((e: any, i: number) => <div key={`title-${i}`}>{e}</div>)
+            .map((e: any, i: number) => (
+              <div key={`title-${i}`}>
+                <AnimatedWords text={e} delay={i * 80} />
+              </div>
+            ))
           : "Please add title."}
       </div>
-      <div className={`text-2xl ${reenie_beanie.className}`}>
+      <div className={`text-2xl content-reveal ${reenie_beanie.className}`}>
         {story.subtitle
           ? story.subtitle
             .split("\n")
             .map((e: any, i: number) => (
-              <div key={`timeline-subtitle-${i}`}>{e}</div>
+              <div key={`timeline-subtitle-${i}`}>
+                <AnimatedWords text={e} delay={100 + i * 80} />
+              </div>
             ))
           : "Please add subtitle."}
       </div>
-      <div className="text-sm opacity-75 flex flex-col gap-1">
+      <div className="text-sm opacity-75 flex flex-col gap-1 content-reveal">
         <p>{story.time}</p>
         <p>{story.location}</p>
       </div>
       {dataView && story.data != null ?
         <>
-          {story.data.map((e: any, i: number) => <div key={`story-data-${i}`} className="border-black border-0">
+          {story.data.map((e: any, i: number) => <div key={`story-data-${i}`} className="border-black border-0 story-media-reveal">
             {e.image && <div className="flex items-center cursor-zoom-in mb-1">
-              <img onClick={() => { setFocusData(e) }} className="w-full z-50" src={e.image} />
+              <img onClick={() => { setFocusData(e) }} className="w-full z-50" src={e.image} alt={e.caption ?? ""} />
             </div>}
             {e.caption && <div>{e.caption}</div>}
             {e.copyright && <div>&copy;{e.copyright}</div>}
@@ -206,11 +255,11 @@ function MainMenu() {
               : "Please add text."}
           </div>
           {inactive !== true && !selectedGroup &&
-            <div className="text-base flex flex-row items-center gap-1">
+            <div className="text-base flex flex-row items-center gap-1 content-reveal">
               <span>Click on the interactive objects in the drawing to find out more.</span>
               <div><CursorArrowRaysIcon className="size-7 animate-pulse" /></div>
             </div>}
-          <div className="text-base flex gap-1 flex-col">
+          <div className="text-base flex gap-1 flex-col story-media-reveal">
             {story.audio &&
               <PaintingAudio src={`/audio/${story.audio}`} />
             }
@@ -308,7 +357,10 @@ function MainMenu() {
             {storyData != null && (
               <div className={`size-full opacity-80 text-gray-950 relative transition-all ${dataView ? 'bg-gray-300 border-l border-gray-400' : ''}`}>
                 <div className="absolute top-0 left-0 size-full overflow-hidden overflow-y-scroll flex items-center">
-                  <div className="w-full max-h-full flex gap-2 flex-col p-3 px-6">
+                  <div
+                    key={`${selectedStoryKey}-${dataView ? "data" : "story"}`}
+                    className="w-full max-h-full flex gap-2 flex-col p-3 px-6 story-sequence"
+                  >
                     {renderContent(story, dataView, painting.inactive, selectedGroup)}
                   </div>
                 </div>
