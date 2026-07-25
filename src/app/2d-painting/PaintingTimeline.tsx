@@ -132,7 +132,7 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
     <div className="size-full items-center grid grid-cols-[64px_auto_64px] gap-2 border-t border-gray-300 relative">
       {canNavigatePrevious && (
         <div
-          className="rounded-full px-2 size-16 shadow hover:shadow-lg hover:bg-gray-400 hover:text-white cursor-pointer items-center justify-center flex"
+          className="rounded-full px-2 text-black size-16 shadow hover:shadow-lg hover:bg-gray-400 hover:text-white cursor-pointer items-center justify-center flex"
           onClick={navigatePrevious}
         >
           <ChevronLeftIcon className="size-7" />
@@ -167,7 +167,7 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
             <Fragment key={`fragment-${e.key}`}>
               <div
                 key={`timeline-title-${i}`}
-                className={`text-xs row-start-1 py-1 ${noto_serif.className}`}
+                className={`text-xs text-black row-start-1 py-1 ${noto_serif.className}`}
               >
                 {story?.shorttitle != null ? story.shorttitle : story?.title}
               </div>
@@ -234,7 +234,7 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
               </div>
               <div
                 key={`timeline-time-${i}`}
-                className={`text-xs row-start-3 py-1 ${noto_serif.className}`}
+                className={`text-xs text-black row-start-3 py-1 ${noto_serif.className}`}
               >
                 {story?.time}
               </div>
@@ -245,7 +245,7 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
       <div className="col-start-3 row-start-1 z-10 flex size-full flex-col items-center justify-center gap-1">
         {canNavigateNext && (
           <div
-            className="px-2 shadow hover:shadow-lg hover:bg-gray-400 hover:text-white cursor-pointer size-16 rounded-full justify-center items-center flex"
+            className="px-2 shadow text-black hover:shadow-lg hover:bg-gray-400 hover:text-white cursor-pointer size-16 rounded-full justify-center items-center flex"
             onClick={navigateNext}
           >
             <ChevronRightIcon className="size-7" />
