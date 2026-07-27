@@ -58,7 +58,7 @@ const steps: TutorialStep[] = [
     eyebrow: "Navigate",
     title: "Travel through the story",
     description:
-      "Use the timeline to revisit discovered scenes and move between moments in Steen's journey.",
+      "Use the timeline to revisit discovered scenes and move between moments in Steen's journey. The counter in the right bottom corner keeps track of your discovered interactive objects.",
     targetPoint: { x: 0.5, y: 0.5 },
   },
 ];
