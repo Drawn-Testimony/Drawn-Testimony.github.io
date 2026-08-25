@@ -60,9 +60,9 @@ export function Navbar({
         <button
           type="button"
           aria-pressed={!dataView}
-          className={`${itemClassName} ${dataView
-              ? "text-gray-600 hover:bg-gray-100 hover:text-gray-950"
-              : "bg-gray-100 text-gray-950"
+          className={`cursor-pointer ${itemClassName} ${dataView
+            ? "text-gray-700 hover:bg-gray-100 hover:text-gray-950"
+            : "bg-gray-100 text-gray-950"
             }`}
           onClick={(event) => {
             event.stopPropagation();
@@ -81,9 +81,9 @@ export function Navbar({
         <button
           type="button"
           aria-pressed={dataView}
-          className={`${itemClassName} border-l border-gray-200 ${dataView
-              ? "bg-gray-100 text-gray-950"
-              : "text-gray-600 hover:bg-gray-100 hover:text-gray-950 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+          className={`${itemClassName} border-l cursor-pointer border-gray-200 ${dataView
+            ? "bg-gray-100 text-gray-950"
+            : "text-gray-700 hover:bg-gray-100 hover:text-gray-950 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent cursor-pointer"
             }`}
           disabled={!dataAvailable}
           title={dataAvailable ? undefined : ui.dataUnavailable}
@@ -112,7 +112,7 @@ export function Navbar({
             key={locale}
             type="button"
             aria-pressed={language === locale}
-            className={`min-w-9 px-2 text-xs font-medium transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-500 sm:min-w-16 sm:text-sm ${locale === "da" ? "border-l border-gray-300" : ""
+            className={`cursor-pointer min-w-9 px-2 text-xs font-medium transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-500 sm:min-w-16 sm:text-sm ${locale === "da" ? "border-l border-gray-300" : ""
               } ${language === locale
                 ? "bg-gray-700 text-white"
                 : "bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-950"
@@ -132,7 +132,7 @@ export function Navbar({
 
       <button
         type="button"
-        className="ml-2 my-2 flex items-center gap-1 rounded-md border border-gray-300 px-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+        className="cursor-pointer ml-2 my-2 flex items-center gap-1 rounded-md border border-gray-300 px-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
         aria-label={ui.openTutorial}
         aria-expanded={tutorialOpen}
         onClick={(event) => {

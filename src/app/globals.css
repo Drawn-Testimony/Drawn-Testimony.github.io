@@ -353,6 +353,12 @@ input:checked + .slider:before {
   filter: drop-shadow( 0px 0px 70px rgba(0, 0, 0, .7));
 }
 
+.myPath {
+  stroke: rgb(0, 0, 0);
+  stroke-width: 1px;
+  stroke-opacity: 30%;
+}
+
 .selected { 
   image {
     -webkit-filter: drop-shadow( 0px 0px 70px rgba(0, 0, 0, .7));
