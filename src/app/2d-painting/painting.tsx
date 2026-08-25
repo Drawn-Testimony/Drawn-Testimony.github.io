@@ -67,13 +67,14 @@ export interface PaintingProps {
   svgFile: string;
   inactive?: boolean;
   discoveredStoryKeys?: Array<string>;
+  missingSvgPath?: string;
 }
 
 export default function Painting(props: PaintingProps) {
   const { svgFile, inactive = false } = props;
 
   if (svgFile == null) {
-    return <div>No SVG path.</div>;
+    return <div>{props.missingSvgPath ?? "No SVG path was provided."}</div>;
   }
 
   const dispatch = useDispatch();
@@ -452,6 +453,25 @@ export default function Painting(props: PaintingProps) {
   useEffect(() => {
     if (svgRef.current != null) {
       setHiddenImages(svgRef.current as SVGSVGElement, true);
+
+      if (inactive !== true) {
+        const groups = (svgRef.current as SVGSVGElement).querySelectorAll("g");
+        groups.forEach((element) => {
+          console.log(element, element.id);
+
+          if (element.id.includes("_group")) {
+            const images = (element as SVGSVGElement).querySelectorAll("image");
+            const paths = (element as SVGSVGElement).querySelectorAll("path");
+            console.log(paths);
+
+            if (paths) {
+              images.forEach((img) => {
+                img.classList.add("myimage");
+              });
+            }
+          }
+        });
+      }
 
       const paths = (svgRef.current as SVGSVGElement).querySelectorAll("path");
       paths.forEach((element) => {

@@ -360,6 +360,11 @@ input:checked + .slider:before {
   }
 }
 
+.myimage { 
+    -webkit-filter: drop-shadow( 0px 0px 70px rgba(0, 0, 0, .5));
+    filter: drop-shadow( 0px 0px 70px rgba(0, 0, 0, .5));
+}
+
 .shadowless {
     -webkit-filter: none !important;
     filter: none !important;

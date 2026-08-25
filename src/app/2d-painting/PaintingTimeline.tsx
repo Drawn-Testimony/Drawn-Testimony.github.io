@@ -9,6 +9,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { StoryEntry } from "../page";
 import { ThumbnailPainting } from "./ThumbnailPainting";
 import { Noto_Serif, Reenie_Beanie } from "next/font/google";
+import { messages } from "../../i18n/messages";
 
 const noto_serif = Noto_Serif({ weight: "400", subsets: ["latin"] });
 const reenie_beanie = Reenie_Beanie({ weight: "400", subsets: ["latin"] });
@@ -32,6 +33,8 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
   const selectedPainting = useSelector(
     (state: State) => state.app.selectedPainting
   );
+  const language = useSelector((state: State) => state.app.language);
+  const ui = messages[language].timeline;
   const svgRef = useRef(null);
 
   const selectedGroup = useSelector((state: State) => state.app.selectedGroup);
@@ -131,12 +134,14 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
   return (
     <div className="size-full items-center grid grid-cols-[64px_auto_64px] gap-2 border-t border-gray-300 relative">
       {canNavigatePrevious && (
-        <div
+        <button
+          type="button"
+          aria-label={ui.previous}
           className="rounded-full px-2 text-black size-16 shadow hover:shadow-lg hover:bg-gray-400 hover:text-white cursor-pointer items-center justify-center flex"
           onClick={navigatePrevious}
         >
           <ChevronLeftIcon className="size-7" />
-        </div>
+        </button>
       )}
       <div
         className="w-full grid items-center painting-timeline grid-rows-[auto_auto_auto] relative col-start-2"
@@ -244,16 +249,18 @@ export function PaintingTimeline(props: PaintingTimelineProps) {
       </div>
       <div className="col-start-3 row-start-1 z-10 flex size-full flex-col items-center justify-center gap-1">
         {canNavigateNext && (
-          <div
+          <button
+            type="button"
+            aria-label={ui.next}
             className="px-2 shadow text-black hover:shadow-lg hover:bg-gray-400 hover:text-white cursor-pointer size-16 rounded-full justify-center items-center flex"
             onClick={navigateNext}
           >
             <ChevronRightIcon className="size-7" />
-          </div>
+          </button>
         )}
         <div
           className={`text-xs text-gray-600 ${noto_serif.className}`}
-          aria-label={`Discovered ${discoveredStoryCount} of ${totalStoryCount} story entries`}
+          aria-label={ui.discovered(discoveredStoryCount, totalStoryCount)}
         >
           {discoveredStoryCount}/{totalStoryCount}
         </div>

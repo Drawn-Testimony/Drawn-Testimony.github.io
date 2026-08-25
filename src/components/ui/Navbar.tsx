@@ -1,87 +1,148 @@
-import Link from "next/link";
+import { QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
+import Link from "next/link";
 import { JSX } from "react";
+import type { Language } from "../../../store/appSlice";
+import { messages } from "../../i18n/messages";
 
-export function Navbar(): JSX.Element {
+interface NavbarProps {
+  dataAvailable: boolean;
+  dataView: boolean;
+  language: Language;
+  tutorialOpen: boolean;
+  onLanguageChange: (language: Language) => void;
+  onLogoClick: () => void;
+  onOpenTutorial: () => void;
+  onViewChange: (dataView: boolean) => void;
+}
+
+export function Navbar({
+  dataAvailable,
+  dataView,
+  language,
+  tutorialOpen,
+  onLanguageChange,
+  onLogoClick,
+  onOpenTutorial,
+  onViewChange,
+}: NavbarProps): JSX.Element {
+  const ui = messages[language].navbar;
+  const itemClassName =
+    "relative flex min-w-16 items-center justify-center px-2 text-sm font-medium transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-500 sm:min-w-20 sm:px-4";
+
   return (
-    <nav className="flex items-center justify-between flex-wrap p-2">
-      <Link href="/">
-        <div className="flex items-center flex-shrink-0 text-white mr-6">
-          <Image
-            alt="Memorise Logo"
-            className="w-auto h-12"
-            width={50}
-            height={50}
-            src="/cropped-logoOctober-1.png"
-          />
-        </div>
+    <nav
+      aria-label={ui.primaryNavigation}
+      className="relative z-[950] flex h-14 w-full shrink-0 items-stretch border-b border-gray-300 bg-white/95 px-2 shadow-sm backdrop-blur"
+    >
+      <Link
+        aria-label={ui.returnToBeginning}
+        className="relative mr-2 w-18 shrink-0 sm:w-24"
+        href="/"
+        onClick={onLogoClick}
+      >
+        <Image
+          src="/assets/cropped-logoOctober-1.png"
+          fill
+          style={{ objectFit: "contain" }}
+          sizes="(min-width: 640px) 96px, 88px"
+          alt={ui.logoAlt}
+          priority
+        />
       </Link>
-      {/* <div className="block lg:hidden">
-        <button className="flex items-center px-3 py-2 border rounded text-teal-200 border-teal-400 hover:text-white hover:border-white">
-          <svg
-            className="fill-current h-3 w-3"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <title>Menu</title>
-            <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
-          </svg>
+
+      <div
+        aria-label={ui.viewMode}
+        className="flex items-stretch border-x border-gray-200"
+        data-tutorial="data"
+        role="group"
+      >
+        <button
+          type="button"
+          aria-pressed={!dataView}
+          className={`${itemClassName} ${dataView
+              ? "text-gray-600 hover:bg-gray-100 hover:text-gray-950"
+              : "bg-gray-100 text-gray-950"
+            }`}
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewChange(false);
+          }}
+        >
+          {ui.story}
+          {!dataView && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-3 bottom-0 h-0.5 bg-gray-700"
+            />
+          )}
         </button>
-      </div> */}
-      <div className="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-        <div className="text-sm lg:flex-grow">
-          {/* <Link
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-700 hover:text-black mr-4"
-            href="/model-viewer/scene-1"
-          >
-            Scene 1
-          </Link>
-          <Link
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-700 hover:text-black mr-4"
-            href="/model-viewer/scene-2"
-          >
-            Scene 2
-          </Link> */}
-          <Link
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-700 hover:text-black mr-4"
-            href="/model-viewer/scene-3"
-          >
-            Barack 56
-          </Link>
-          <Link
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-700 hover:text-black mr-4"
-            href="/model-viewer/scene-5"
-          >
-            Santa Clara
-          </Link>
-          {/* <Link
-            className="block mt-4 lg:inline-block lg:mt-0 text-gray-700 hover:text-black mr-4"
-            href="/model-viewer/scene-4"
-          >
-            Bernburg
-          </Link> */}
-          {/*  <a
-            href="#responsive-header"
-            className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white mr-4"
-          >
-            Examples
-          </a>
-          <a
-            href="#responsive-header"
-            className="block mt-4 lg:inline-block lg:mt-0 text-teal-200 hover:text-white"
-          >
-            Blog
-          </a>
-        </div>
-        <div>
-          <a
-            href="#"
-            className="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-teal-500 hover:bg-white mt-4 lg:mt-0"
-          >
-            Download
-          </a> */}
-        </div>
+
+        <button
+          type="button"
+          aria-pressed={dataView}
+          className={`${itemClassName} border-l border-gray-200 ${dataView
+              ? "bg-gray-100 text-gray-950"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-950 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+            }`}
+          disabled={!dataAvailable}
+          title={dataAvailable ? undefined : ui.dataUnavailable}
+          onClick={(event) => {
+            event.stopPropagation();
+            onViewChange(true);
+          }}
+        >
+          {ui.data}
+          {dataView && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-3 bottom-0 h-0.5 bg-gray-700"
+            />
+          )}
+        </button>
       </div>
+
+      <div
+        aria-label={ui.language}
+        className="ml-auto my-2 flex overflow-hidden rounded-md border border-gray-300"
+        role="group"
+      >
+        {(["en", "da"] as const).map((locale) => (
+          <button
+            key={locale}
+            type="button"
+            aria-pressed={language === locale}
+            className={`min-w-9 px-2 text-xs font-medium transition-colors focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-500 sm:min-w-16 sm:text-sm ${locale === "da" ? "border-l border-gray-300" : ""
+              } ${language === locale
+                ? "bg-gray-700 text-white"
+                : "bg-white text-gray-600 hover:bg-gray-100 hover:text-gray-950"
+              }`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onLanguageChange(locale);
+            }}
+          >
+            <span className="sm:hidden">{locale.toUpperCase()}</span>
+            <span className="hidden sm:inline">
+              {locale === "en" ? ui.english : ui.danish}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="ml-2 my-2 flex items-center gap-1 rounded-md border border-gray-300 px-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500"
+        aria-label={ui.openTutorial}
+        aria-expanded={tutorialOpen}
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpenTutorial();
+        }}
+      >
+        <span className="hidden md:inline">{ui.tutorial}</span>
+        <QuestionMarkCircleIcon className="size-5 fill-gray-600" />
+      </button>
     </nav>
   );
 }

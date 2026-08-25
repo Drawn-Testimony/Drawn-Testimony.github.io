@@ -6,6 +6,9 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { State } from "../../store/store";
+import { messages } from "../i18n/messages";
 
 interface TutorialOverlayProps {
   open: boolean;
@@ -27,38 +30,24 @@ interface TutorialLayout {
   arrow: { startX: number; startY: number; endX: number; endY: number };
 }
 
-const steps: TutorialStep[] = [
+const stepLayouts: Array<
+  Pick<TutorialStep, "selector" | "targetPoint" | "offset">
+> = [
   {
     selector: '[data-tutorial="painting"]',
-    eyebrow: "Explore",
-    title: "Investigate the drawing",
-    description:
-      "Move across the illustration and select highlighted objects to reveal more of the testimony.",
     targetPoint: { x: 0.28, y: 0.38 },
   },
   {
     selector: '[data-tutorial="story"]',
-    eyebrow: "Read & listen",
-    title: "Follow the testimony",
-    description:
-      "The story for the selected scene appears here. Some entries also include quotes, audios, and maps.",
     targetPoint: { x: 0.5, y: 0.4 },
   },
   {
     selector: '[data-tutorial="data"]',
-    eyebrow: "View the data",
-    title: "Visit the evidence resources",
-    description:
-      "The drawings and story are based on Steen's testimony and memories as well as archival evidence.",
     targetPoint: { x: 0.8, y: 1.0 },
     offset: { x: 0.0, y: 1.0 },
   },
   {
     selector: '[data-tutorial="timeline"]',
-    eyebrow: "Navigate",
-    title: "Travel through the story",
-    description:
-      "Use the timeline to revisit discovered scenes and move between moments in Steen's journey. The counter in the right bottom corner keeps track of your discovered interactive objects.",
     targetPoint: { x: 0.5, y: 0.5 },
   },
 ];
@@ -122,6 +111,16 @@ function getLayout(step: TutorialStep, stepIndex: number): TutorialLayout | null
 }
 
 export function TutorialOverlay({ open, onClose }: TutorialOverlayProps) {
+  const language = useSelector((state: State) => state.app.language);
+  const ui = messages[language].tutorial;
+  const steps = useMemo(
+    () =>
+      stepLayouts.map((layout, index) => ({
+        ...layout,
+        ...ui.steps[index],
+      })),
+    [ui.steps]
+  );
   const [stepIndex, setStepIndex] = useState(0);
   const [layout, setLayout] = useState<TutorialLayout | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -263,7 +262,7 @@ export function TutorialOverlay({ open, onClose }: TutorialOverlayProps) {
         <div className="mb-2 flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gray-500">
-              {step.eyebrow} · {stepIndex + 1} of {steps.length}
+              {step.eyebrow} · {stepIndex + 1} {ui.of} {steps.length}
             </p>
             <h2 id="tutorial-title" className="mt-1 text-xl font-semibold">
               {step.title}
@@ -273,7 +272,7 @@ export function TutorialOverlay({ open, onClose }: TutorialOverlayProps) {
             ref={closeButtonRef}
             type="button"
             className="-mr-2 -mt-2 rounded-full p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-950 focus:outline-none focus:ring-2 focus:ring-gray-500"
-            aria-label="Close tutorial"
+            aria-label={ui.close}
             onClick={onClose}
           >
             <XMarkIcon className="size-5" />
@@ -287,7 +286,7 @@ export function TutorialOverlay({ open, onClose }: TutorialOverlayProps) {
             disabled={stepIndex === 0}
             onClick={() => setStepIndex((current) => current - 1)}
           >
-            <ArrowLeftIcon className="size-4" /> Previous
+            <ArrowLeftIcon className="size-4" /> {ui.previous}
           </button>
           {stepIndex < steps.length - 1 ? (
             <button
@@ -295,7 +294,7 @@ export function TutorialOverlay({ open, onClose }: TutorialOverlayProps) {
               className="flex items-center gap-1 rounded-md bg-gray-900 px-3 py-2 text-sm text-white transition hover:bg-gray-700"
               onClick={() => setStepIndex((current) => current + 1)}
             >
-              Next <ArrowRightIcon className="size-4" />
+              {ui.next} <ArrowRightIcon className="size-4" />
             </button>
           ) : (
             <button
@@ -303,7 +302,7 @@ export function TutorialOverlay({ open, onClose }: TutorialOverlayProps) {
               className="rounded-md bg-gray-900 px-3 py-2 text-sm text-white transition hover:bg-gray-700"
               onClick={onClose}
             >
-              Start exploring
+              {ui.startExploring}
             </button>
           )}
         </div>

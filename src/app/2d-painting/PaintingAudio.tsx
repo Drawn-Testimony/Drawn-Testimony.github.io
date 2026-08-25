@@ -1,4 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { State } from "../../../store/store";
+import { messages } from "../../i18n/messages";
 
 interface PaintingAudioProps {
     src: string;
@@ -16,6 +19,8 @@ export function getSteenPortrait() {
 
 export function PaintingAudio(props: PaintingAudioProps) {
     const { src } = props;
+    const language = useSelector((state: State) => state.app.language);
+    const ui = messages[language].audio;
 
     const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -107,7 +112,7 @@ export function PaintingAudio(props: PaintingAudioProps) {
 
                 {/* Main controls */}
                 <div className="flex flex-1 flex-col gap-2 opacity-50">
-                    <div className="text-xs">Listen to Steen to learn more.</div>
+                    <div className="text-xs">{ui.listen}</div>
                     {/* Progress bar */}
                     <div className="relative h-2 w-full bg-slate-300 rounded-md">
                         <div
@@ -122,7 +127,7 @@ export function PaintingAudio(props: PaintingAudioProps) {
                             value={currentTime}
                             onChange={handleSeek}
                             className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                            aria-label="Seek audio"
+                            aria-label={ui.seek}
                         />
                     </div>
 
@@ -133,7 +138,7 @@ export function PaintingAudio(props: PaintingAudioProps) {
                                 type="button"
                                 onClick={togglePlay}
                                 className="flex h-4 w-4 items-center justify-center transition hover:text-slate-500 cursor-pointer"
-                                aria-label={isPlaying ? "Pause audio" : "Play audio"}
+                                aria-label={isPlaying ? ui.pause : ui.play}
                             >
                                 {isPlaying ? (
                                     <span className="flex gap-1">
@@ -155,7 +160,7 @@ export function PaintingAudio(props: PaintingAudioProps) {
                                     value={volume}
                                     onChange={handleVolumeChange}
                                     className="w-20 accent-black h-2"
-                                    aria-label="Volume"
+                                    aria-label={ui.volume}
                                 />
                                 <SpeakerIcon />
                             </div>

@@ -20,6 +20,7 @@ type HistoricalMapFeatureCollection = FeatureCollection<Polygon | MultiPolygon, 
 type CountryLabelFeatureCollection = FeatureCollection<Point, CountryLabelProperties>;
 
 interface PaintingMapProps {
+    ariaLabel: string;
     className?: string;
     start: { lat: number, lon: number }
     end?: { lat: number, lon: number }
@@ -518,6 +519,7 @@ function getSvgLabelFontSize(labelTier: CountryLabelProperties["labelTier"]) {
 }
 
 function PaintingMapSvgFallback({
+    ariaLabel,
     mapData,
     countryLabels,
     routeFeature,
@@ -525,6 +527,7 @@ function PaintingMapSvgFallback({
     travelPointFeature,
     travelBounds,
 }: {
+    ariaLabel: string;
     mapData: HistoricalMapFeatureCollection | null;
     countryLabels: CountryLabelFeatureCollection;
     routeFeature: Feature<LineString>;
@@ -563,7 +566,7 @@ function PaintingMapSvgFallback({
             viewBox={`${viewBox.minX} ${viewBox.minY} ${viewBox.width} ${viewBox.height}`}
             preserveAspectRatio="xMidYMid meet"
             role="img"
-            aria-label="Historical travel map"
+            aria-label={ariaLabel}
         >
             <rect
                 x={viewBox.minX}
@@ -714,6 +717,7 @@ export function PaintingMap(props: PaintingMapProps) {
         <div className={`painting-map size-full bg-transparent z-1 ${props.className ?? ""}`}>
             {useSvgFallback ? (
                 <PaintingMapSvgFallback
+                    ariaLabel={props.ariaLabel}
                     mapData={historicalMapData}
                     countryLabels={countryLabels}
                     routeFeature={routeFeature}
