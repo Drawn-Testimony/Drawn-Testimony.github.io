@@ -124,14 +124,29 @@ export default function Painting(props: PaintingProps) {
           ((element as SVGGraphicsElement).closest(
             "g[id$='_group']"
           ) as SVGGraphicsElement | null) ?? (element as SVGGraphicsElement);
-        const bbox = zoomTarget.getBBox();
-        const padding =
-          (parseInt(svg.getAttribute("width") as string) / 200) * 10;
+        const localBox = zoomTarget.getBBox();
+        const targetMatrix = zoomTarget.getCTM();
+        const svgMatrix = svg.getCTM();
+        const relativeMatrix = targetMatrix && svgMatrix
+          ? svgMatrix.inverse().multiply(targetMatrix)
+          : null;
+        const corners = [
+          new DOMPoint(localBox.x, localBox.y),
+          new DOMPoint(localBox.x + localBox.width, localBox.y),
+          new DOMPoint(localBox.x, localBox.y + localBox.height),
+          new DOMPoint(localBox.x + localBox.width, localBox.y + localBox.height),
+        ].map((point) => relativeMatrix ? point.matrixTransform(relativeMatrix) : point);
+        const left = Math.min(...corners.map((point) => point.x));
+        const top = Math.min(...corners.map((point) => point.y));
+        const right = Math.max(...corners.map((point) => point.x));
+        const bottom = Math.max(...corners.map((point) => point.y));
+        const svgWidth = getViewBoxArray(svg)?.[2] ?? parseFloat(svg.getAttribute("width") ?? "0");
+        const padding = svgWidth * 0.05;
 
-        const x = bbox.x - padding;
-        const y = bbox.y - padding;
-        const width = bbox.width + 2 * padding;
-        const height = bbox.height + 2 * padding;
+        const x = left - padding;
+        const y = top - padding;
+        const width = right - left + 2 * padding;
+        const height = bottom - top + 2 * padding;
 
         animateViewBox(svg, getViewBoxArray(svg), [x, y, width, height], 500);
       }
@@ -427,7 +442,7 @@ export default function Painting(props: PaintingProps) {
       if (inactive !== true) {
         const groups = (svgRef.current as SVGSVGElement).querySelectorAll("g");
         groups.forEach((element) => {
-          if (element.id.includes("_group")) {
+          if (element.id.includes("_group") && !element.classList.contains("inactive")) {
             const images = (element as SVGSVGElement).querySelectorAll("image");
             const paths = (element as SVGSVGElement).querySelectorAll("path");
             if (paths) {
@@ -444,7 +459,7 @@ export default function Painting(props: PaintingProps) {
         if (!element.id) {
           element.id = nanoid(4);
         }
-        if (inactive !== true) {
+        if (inactive !== true && element.closest("g.inactive") == null) {
           element.classList.add("myPath");
           element.setAttribute("opacity", "1.0");
           element.addEventListener("click", clickHandler);
