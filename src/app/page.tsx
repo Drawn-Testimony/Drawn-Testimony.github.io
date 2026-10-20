@@ -2,7 +2,7 @@
 import { Noto_Serif, Reenie_Beanie } from "next/font/google";
 import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
-import { Language, setLanguage, setMode, setSelectedPainting } from "../../store/appSlice";
+import { Language, setLanguage, setMode, setSelectedGroup, setSelectedPainting } from "../../store/appSlice";
 import { State, store } from "../../store/store";
 import { Navbar } from "../components/ui/Navbar";
 import { messages } from "../i18n/messages";
@@ -10,6 +10,7 @@ import Painting from "./2d-painting/painting";
 import { PaintingTimeline } from "./2d-painting/PaintingTimeline";
 import { getSteenPortrait, PaintingAudio } from "./2d-painting/PaintingAudio";
 import { PaintingMap } from "./map/PaintingMap";
+import { ARPainting } from "./ar/ARPainting";
 import { ArrowRightIcon, CursorArrowRaysIcon } from "@heroicons/react/24/solid";
 import { TutorialOverlay } from "./TutorialOverlay";
 import type { LineString } from "geojson";
@@ -28,18 +29,18 @@ const storyDataUrls: Record<Language, string> = {
 // });
 
 const paintings = [
-  { key: "start", svgFile: "/images/scene_2.svg" },
-  // { key: "young", svgFile: "/images/2. combined_photographs-with-bike.svg" },
-  // { key: "hjallesevej", svgFile: "/images/3. arrest.svg" },
-  // { key: "transport", svgFile: "/images/Transport scene-2.svg" },
-  // { key: "barracks", svgFile: "/images/5. barracks.svg" },
-  // { key: "food", svgFile: "/images/5. food.svg" },
-  // { key: "infirmary", svgFile: "/images/5.5 infirmary.svg" },
-  // { key: "soccer", svgFile: "/images/7. Soccer scene.svg" },
-  // { key: "modelcamp", svgFile: "/images/Model Camp scene-1.svg" },
-  // { key: "whitebus", svgFile: "/images/10. white buses.svg" },
-  // { key: "after", svgFile: "/images/11. After Theresienstadt.svg" },
-  // { key: "question_answer", svgFile: "/images/12. second career.svg", noTimelineThumbnails: true },
+  { key: "start", svgFile: "/images/Title page-1.svg", inactive: true },
+  { key: "young", svgFile: "/images/2. combined_photographs-with-bike.svg" },
+  { key: "hjallesevej", svgFile: "/images/3. arrest.svg" },
+  { key: "transport", svgFile: "/images/Transport scene-2.svg" },
+  { key: "barracks", svgFile: "/images/5. barracks.svg" },
+  { key: "food", svgFile: "/images/5. food.svg" },
+  { key: "infirmary", svgFile: "/images/5.5 infirmary.svg" },
+  { key: "soccer", svgFile: "/images/7. Soccer scene.svg" },
+  { key: "modelcamp", svgFile: "/images/Model Camp scene-1.svg" },
+  { key: "whitebus", svgFile: "/images/10. white buses.svg" },
+  { key: "after", svgFile: "/images/11. After Theresienstadt.svg" },
+  { key: "question_answer", svgFile: "/images/12. second career.svg", noTimelineThumbnails: true },
 ];
 
 function AnimatedWords({
@@ -54,14 +55,14 @@ function AnimatedWords({
   const words = text.trim().split(/\s+/);
 
   return (
-    <span className={`word-reveal ${className}`} aria-label={text}>
+    <span className={`${className}`} aria-label={text}>
       {words.map((word, index) => (
         <span key={`${word}-${index}`} aria-hidden="true">
           <span
-            className="word-reveal-item"
-            style={{
-              "--word-delay": `${delay + Math.min(index * 24, 600)}ms`,
-            } as CSSProperties}
+          // className="word-reveal-item"
+          // style={{
+          //   "--word-delay": `${delay + Math.min(index * 24, 600)}ms`,
+          // } as CSSProperties}
           >
             {word}
           </span>
@@ -93,7 +94,7 @@ function renderStoryParagraph(text: string, paragraphIndex: number) {
     parts.push(
       <div
         key={`story-quote-${paragraphIndex}-${match.index}`}
-        className="w-full flex flex-row gap-3 items-center content-reveal"
+        className="w-full flex flex-row gap-3 items-center"
       >
         {getSteenPortrait()}
         <span className="italic">
@@ -224,6 +225,7 @@ function MainMenu() {
   const [discoveredStoryKeys, setDiscoveredStoryKeys] = useState<Array<string>>([]);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [startScreenOpen, setStartScreenOpen] = useState(true);
+  const [arMode, setArMode] = useState(false);
 
   useEffect(() => {
     Promise.all(
@@ -324,7 +326,7 @@ function MainMenu() {
             ))
           : ui.story.missingTitle}
       </div>
-      <div className={`text-2xl content-reveal ${reenie_beanie.className}`}>
+      <div className={`text-2xl ${reenie_beanie.className}`}>
         {story.subtitle
           ? story.subtitle
             .split("\n")
@@ -335,13 +337,13 @@ function MainMenu() {
             ))
           : ui.story.missingSubtitle}
       </div>
-      <div className="text-sm opacity-75 flex flex-col gap-1 content-reveal">
+      <div className="text-sm opacity-75 flex flex-col gap-1">
         <p>{story.time}</p>
         <p>{story.location}</p>
       </div>
       {dataView && story.data != null ?
         <>
-          {story.data.map((e: any, i: number) => <div key={`story-data-${i}`} className="border-black border-0 story-media-reveal">
+          {story.data.map((e: any, i: number) => <div key={`story-data-${i}`} className="border-black border-0">
             {e.image && <div className="flex items-center cursor-zoom-in mb-1">
               <img onClick={() => { setFocusData(e) }} className="w-full z-50" src={e.image} alt={e.caption ?? ""} />
             </div>}
@@ -355,13 +357,13 @@ function MainMenu() {
               ? renderStoryText(story.text)
               : ui.story.missingText}
           </div>
-          <div className="text-base flex gap-1 flex-col story-media-reveal">
+          <div className="text-base flex gap-1 flex-col">
             {story.audio &&
               <PaintingAudio src={`/audio/${story.audio}`} />
             }
           </div>
           {
-            story.map && <div className="text-sm flex gap-1 flex-col z-0 story-media-reveal">
+            story.map && <div className="text-sm flex gap-1 flex-col z-0">
               <div className="h-[300px] w-full border-2 border-gray-300 rounded-md opacity-90">
                 <PaintingMap
                   start={story.map.start}
@@ -378,7 +380,7 @@ function MainMenu() {
           }
           {painting.inactive !== true && !selectedGroup &&
             <div className="mt-7 w-full flex justify-center">
-              <div className="text-base flex flex-row items-center gap-1 content-reveal">
+              <div className="text-base flex flex-row items-center gap-1">
                 <div><CursorArrowRaysIcon className="size-7 animate-pulse" /></div>
                 <span className="italic text-gray-600">{ui.story.interactionPrompt}</span>
               </div>
@@ -413,18 +415,33 @@ function MainMenu() {
       <Navbar
         language={language}
         tutorialOpen={tutorialOpen}
+        arMode={arMode}
+        onToggleAr={() => {
+          setStartScreenOpen(false);
+          setArMode((current) => !current);
+        }}
         onLanguageChange={(nextLanguage) => dispatch(setLanguage(nextLanguage))}
         onLogoClick={() => {
+          setArMode(false);
           dispatch(setSelectedPainting(0));
           setStartScreenOpen(true);
         }}
         onOpenTutorial={() => setTutorialOpen(true)}
       />
 
-      <div className="relative grid size-full min-h-0 grid-rows-1 grid-cols-[70%_30%] items-center justify-center">
-        <div className="size-full relative" data-tutorial="painting">
+      <div className="painting-content relative grid size-full min-h-0 grid-rows-1 grid-cols-[70%_30%] items-center justify-center">
+        <div className="painting-stage size-full relative" data-tutorial="painting">
           {
-            <>
+            arMode ? (
+              <ARPainting
+                key={painting.key}
+                sceneKey={painting.key}
+                svgFile={painting.svgFile}
+                language={language}
+                selectedGroup={selectedGroup}
+                onSelectGroup={(group) => dispatch(setSelectedGroup(group))}
+              />
+            ) : <>
               <Painting
                 key={painting.key}
                 svgFile={painting.svgFile}
@@ -436,7 +453,7 @@ function MainMenu() {
           }
         </div>
 
-        <div className="size-full relative" data-tutorial="story">
+        <div className="painting-story size-full relative" data-tutorial="story">
           <div className="size-full absolute top-0 left-0">
             {storyData != null && (
               <div className={`size-full opacity-80 text-gray-950 relative transition-all ${dataView ? 'bg-gray-300 border-l border-gray-400' : ''}`}>

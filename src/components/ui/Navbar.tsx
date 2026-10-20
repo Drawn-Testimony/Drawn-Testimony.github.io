@@ -8,6 +8,8 @@ import { messages } from "../../i18n/messages";
 interface NavbarProps {
   language: Language;
   tutorialOpen: boolean;
+  arMode: boolean;
+  onToggleAr: () => void;
   onLanguageChange: (language: Language) => void;
   onLogoClick: () => void;
   onOpenTutorial: () => void;
@@ -16,6 +18,8 @@ interface NavbarProps {
 export function Navbar({
   language,
   tutorialOpen,
+  arMode,
+  onToggleAr,
   onLanguageChange,
   onLogoClick,
   onOpenTutorial,
@@ -65,6 +69,18 @@ export function Navbar({
           </button>
         ))}
       </div>
+
+      <button
+        type="button"
+        className="interface-pill-button navbar-view-button ml-2 my-2"
+        aria-pressed={arMode}
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggleAr();
+        }}
+      >
+        {arMode ? ui.story : ui.ar}
+      </button>
 
       <button
         type="button"

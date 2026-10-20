@@ -170,6 +170,100 @@ input:checked + .slider:before {
   background: #ffffff;
 }
 
+.ar-camera {
+  position: relative;
+}
+
+.ar-camera > video {
+  z-index: 0 !important;
+}
+
+.ar-camera > canvas {
+  z-index: 1;
+}
+
+.ar-camera > div {
+  z-index: 2;
+}
+
+.ar-camera > canvas,
+.ar-camera > video {
+  max-width: none;
+}
+
+.ar-guidance {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.94);
+  color: #171717;
+  text-align: left;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.ar-guidance img {
+  width: 80px;
+  height: 56px;
+  flex: none;
+  object-fit: contain;
+  background: white;
+}
+
+.ar-clear {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+
+.ar-overlay-svg {
+  width: 1000px;
+  height: 100%;
+  overflow: visible;
+}
+
+.ar-overlay-svg image {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ar-overlay-svg path {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.ar-overlay-svg .ar-interactive-path {
+  visibility: visible;
+  pointer-events: fill;
+  cursor: pointer;
+  fill: rgba(230, 202, 173, 0.08) !important;
+  stroke: rgba(0, 0, 0, 0.65) !important;
+  stroke-width: 1.5px !important;
+  vector-effect: non-scaling-stroke;
+}
+
+.ar-overlay-svg .ar-interactive-path:hover,
+.ar-overlay-svg .ar-interactive-path:focus,
+.ar-overlay-svg .ar-selected .ar-interactive-path {
+  fill: rgba(230, 202, 173, 0.3) !important;
+  stroke: #000 !important;
+  stroke-width: 3px !important;
+}
+
+.ar-overlay-svg .ar-selected image[id*="hidden"] {
+  visibility: visible;
+}
+
 .start-screen {
   position: fixed;
   inset: 0;

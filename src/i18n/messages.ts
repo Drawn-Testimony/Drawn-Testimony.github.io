@@ -21,6 +21,7 @@ interface UiMessages {
     logoAlt: string;
     viewMode: string;
     story: string;
+    ar: string;
     data: string;
     dataUnavailable: string;
     openTutorial: string;
@@ -63,6 +64,16 @@ interface UiMessages {
   map: {
     historicalTravelMap: string;
   };
+  ar: {
+    interactiveObjects: string;
+    loading: string;
+    scan: string;
+    clearSelection: string;
+    secureContext: string;
+    cameraDenied: string;
+    noCamera: string;
+    unavailable: string;
+  };
 }
 
 export const messages: Record<Language, UiMessages> = {
@@ -82,6 +93,7 @@ export const messages: Record<Language, UiMessages> = {
       logoAlt: "Memorise Logo",
       viewMode: "View mode",
       story: "Story",
+      ar: "AR",
       data: "Data",
       dataUnavailable: "No data available for this scene",
       openTutorial: "Open screen tutorial",
@@ -151,6 +163,16 @@ export const messages: Record<Language, UiMessages> = {
     map: {
       historicalTravelMap: "Historical travel map",
     },
+    ar: {
+      interactiveObjects: "Interactive objects in the drawing",
+      loading: "Opening camera and scene…",
+      scan: "Point the camera at this entire drawing.",
+      clearSelection: "Clear selection",
+      secureContext: "Camera access requires HTTPS or localhost.",
+      cameraDenied: "Allow camera access to use AR.",
+      noCamera: "No camera is available on this device.",
+      unavailable: "This scene could not be opened in AR.",
+    },
   },
   da: {
     startScreen: {
@@ -168,6 +190,7 @@ export const messages: Record<Language, UiMessages> = {
       logoAlt: "Memorise-logo",
       viewMode: "Visning",
       story: "Fortælling",
+      ar: "AR",
       data: "Data",
       dataUnavailable: "Der er ingen data til denne scene",
       openTutorial: "Åbn introduktionen",
@@ -236,6 +259,16 @@ export const messages: Record<Language, UiMessages> = {
     },
     map: {
       historicalTravelMap: "Historisk rejsekort",
+    },
+    ar: {
+      interactiveObjects: "Interaktive objekter i tegningen",
+      loading: "Åbner kamera og scene…",
+      scan: "Ret kameraet mod hele tegningen.",
+      clearSelection: "Ryd valg",
+      secureContext: "Kameraadgang kræver HTTPS eller localhost.",
+      cameraDenied: "Giv adgang til kameraet for at bruge AR.",
+      noCamera: "Der er intet kamera på denne enhed.",
+      unavailable: "Scenen kunne ikke åbnes i AR.",
     },
   },
 };
