@@ -1,20 +1,27 @@
 "use client";
 import { Noto_Serif, Reenie_Beanie } from "next/font/google";
-import Image from "next/image";
-import Link from "next/link";
 import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import { Provider, useDispatch, useSelector } from "react-redux";
-import { setMode, setSelectedPainting } from "../../store/appSlice";
+import { Language, setLanguage, setMode, setSelectedGroup, setSelectedPainting } from "../../store/appSlice";
 import { State, store } from "../../store/store";
+import { Navbar } from "../components/ui/Navbar";
+import { messages } from "../i18n/messages";
 import Painting from "./2d-painting/painting";
 import { PaintingTimeline } from "./2d-painting/PaintingTimeline";
 import { getSteenPortrait, PaintingAudio } from "./2d-painting/PaintingAudio";
 import { PaintingMap } from "./map/PaintingMap";
-import { CursorArrowRaysIcon, QuestionMarkCircleIcon } from "@heroicons/react/24/solid";
+import { ARPainting } from "./ar/ARPainting";
+import { ArrowRightIcon, CursorArrowRaysIcon } from "@heroicons/react/24/solid";
 import { TutorialOverlay } from "./TutorialOverlay";
+import type { LineString } from "geojson";
 
 const reenie_beanie = Reenie_Beanie({ weight: "400", subsets: ["latin"] });
 const noto_serif = Noto_Serif({ weight: "400", subsets: ["latin"] });
+
+const storyDataUrls: Record<Language, string> = {
+  en: "/story-data.json",
+  da: "/story-data.da.json",
+};
 
 // const Model = dynamic(() => import("@/components/model-viewer/Model"), {
 //   loading: () => <p>Loading...</p>,
@@ -27,11 +34,13 @@ const paintings = [
   { key: "hjallesevej", svgFile: "/images/3. arrest.svg" },
   { key: "transport", svgFile: "/images/Transport scene-2.svg" },
   { key: "barracks", svgFile: "/images/5. barracks.svg" },
+  { key: "food", svgFile: "/images/5. food.svg" },
   { key: "infirmary", svgFile: "/images/5.5 infirmary.svg" },
   { key: "soccer", svgFile: "/images/7. Soccer scene.svg" },
-  // { key: "modelcamp", svgFile: "/images/Model Camp scene-1.svg" },
-  { key: "whitebus", svgFile: "/images/9. White Buses.svg" },
+  { key: "modelcamp", svgFile: "/images/Model Camp scene-1.svg" },
+  { key: "whitebus", svgFile: "/images/10. white buses.svg" },
   { key: "after", svgFile: "/images/11. After Theresienstadt.svg" },
+  { key: "question_answer", svgFile: "/images/12. second career.svg", noTimelineThumbnails: true },
 ];
 
 function AnimatedWords({
@@ -46,14 +55,14 @@ function AnimatedWords({
   const words = text.trim().split(/\s+/);
 
   return (
-    <span className={`word-reveal ${className}`} aria-label={text}>
+    <span className={`${className}`} aria-label={text}>
       {words.map((word, index) => (
         <span key={`${word}-${index}`} aria-hidden="true">
           <span
-            className="word-reveal-item"
-            style={{
-              "--word-delay": `${delay + Math.min(index * 24, 600)}ms`,
-            } as CSSProperties}
+          // className="word-reveal-item"
+          // style={{
+          //   "--word-delay": `${delay + Math.min(index * 24, 600)}ms`,
+          // } as CSSProperties}
           >
             {word}
           </span>
@@ -85,7 +94,7 @@ function renderStoryParagraph(text: string, paragraphIndex: number) {
     parts.push(
       <div
         key={`story-quote-${paragraphIndex}-${match.index}`}
-        className="w-full flex flex-row gap-3 items-center content-reveal"
+        className="w-full flex flex-row gap-3 items-center"
       >
         {getSteenPortrait()}
         <span className="italic">
@@ -121,8 +130,15 @@ function renderStoryText(text: string) {
 export interface MapEntry {
   title: string;
   mapyear?: number;
-  start: { lat: number, lon: number, title: string };
-  end?: { lat: number, lon: number, title: string };
+  start: { lat: number, lon: number };
+  end?: { lat: number, lon: number };
+  lineString?: LineString;
+}
+
+export interface StoryDataItem {
+  image?: string;
+  caption?: string;
+  copyright?: string | null;
 }
 
 export interface StoryEntry {
@@ -134,8 +150,59 @@ export interface StoryEntry {
   svgElement: string;
   audio?: string;
   map?: MapEntry;
-  data?: Record<string, string>
+  data?: StoryDataItem[];
   shorttitle?: string;
+}
+
+function StartScreen({
+  language,
+  onLanguageChange,
+  onBegin,
+}: {
+  language: Language;
+  onLanguageChange: (language: Language) => void;
+  onBegin: () => void;
+}) {
+  const ui = messages[language].startScreen;
+
+  return (
+    <div className="start-screen bg-white" aria-labelledby="start-screen-title">
+      <div className="start-screen-language-wrapper">
+
+        <div className="start-screen-language" aria-label={ui.language} role="group">
+          {(["en", "da"] as const).map((locale) => (
+            <button
+              key={locale}
+              type="button"
+              aria-pressed={language === locale}
+              onClick={() => onLanguageChange(locale)}
+            >
+              {locale === "en" ? "English" : "Dansk"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="start-screen-art cursor-pointer" aria-hidden="true" onClick={onBegin}>
+        <img src="/images/Title Steen.svg" alt="" />
+      </div>
+
+      <div className="start-screen-content cursor-pointer" onClick={onBegin}>
+        <p className="start-screen-eyebrow">{ui.eyebrow}</p>
+        <h1 id="start-screen-title" className={noto_serif.className}>
+          {ui.title.split("\n").map((line) => (
+            <div key={line}>{line}</div>
+          ))}
+        </h1>
+        <p className={`text-[var(--highlight-dark)] start-screen-subtitle ${reenie_beanie.className}`}>
+          {ui.subtitle}
+        </p>
+        <p className="start-screen-invitation">{ui.invitation}</p>
+
+        <p className="mt-8 text-2xl italic text-[var(--highlight-dark)]">{ui.begin}</p>
+      </div>
+    </div>
+  );
 }
 
 function MainMenu() {
@@ -147,20 +214,52 @@ function MainMenu() {
   );
 
   const selectedGroup = useSelector((state: State) => state.app.selectedGroup);
+  const language = useSelector((state: State) => state.app.language);
+  const ui = messages[language];
 
-  const [storyData, setStoryData] = useState<Record<string, StoryEntry>>();
+  const [storyDataByLanguage, setStoryDataByLanguage] = useState<
+    Partial<Record<Language, Record<string, StoryEntry>>>
+  >({});
   const [dataView, setDataView] = useState<boolean>(false);
   const [focusData, setFocusData] = useState<any>(null);
   const [discoveredStoryKeys, setDiscoveredStoryKeys] = useState<Array<string>>([]);
   const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [startScreenOpen, setStartScreenOpen] = useState(true);
+  const [arMode, setArMode] = useState(false);
 
   useEffect(() => {
-    fetch("/story-data.json")
-      .then((res) => res.json())
-      .then(function (json) {
-        setStoryData(json);
-      });
+    Promise.all(
+      (Object.entries(storyDataUrls) as [Language, string][]).map(
+        async ([locale, url]) => {
+          const response = await fetch(url);
+          const data = (await response.json()) as Record<string, StoryEntry>;
+          return [locale, data] as const;
+        }
+      )
+    ).then((entries) => {
+      setStoryDataByLanguage(
+        Object.fromEntries(entries) as Record<
+          Language,
+          Record<string, StoryEntry>
+        >
+      );
+    });
   }, []);
+
+  useEffect(() => {
+    const savedLanguage = window.localStorage.getItem("memorise-language");
+    if (savedLanguage === "en" || savedLanguage === "da") {
+      dispatch(setLanguage(savedLanguage));
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    window.localStorage.setItem("memorise-language", language);
+    setFocusData(null);
+  }, [language]);
+
+  const storyData = storyDataByLanguage[language];
 
   const painting = useMemo(() => {
     return paintings.filter((e, i) => i === selectedPainting)[0];
@@ -196,20 +295,23 @@ function MainMenu() {
 
   const story = useMemo(() => {
     if (storyData != null && selectedStoryKey != null) {
-      if (storyData[selectedStoryKey].data == null) {
-        setDataView(false);
-      }
       return storyData[selectedStoryKey];
     } else {
       return {
-        title: "Please add title.",
-        text: "Please add text.",
-        subtitle: "Please add subtitle.",
-        location: "Please add location.",
-        time: "Please add time.",
+        title: ui.story.missingTitle,
+        text: ui.story.missingText,
+        subtitle: ui.story.missingSubtitle,
+        location: ui.story.missingLocation,
+        time: ui.story.missingTime,
       } as StoryEntry;
     }
-  }, [selectedStoryKey, storyData]);
+  }, [selectedStoryKey, storyData, ui.story]);
+
+  useEffect(() => {
+    if (story.data == null) {
+      setDataView(false);
+    }
+  }, [story]);
 
   const renderContent = useCallback((story: any, dataView: any, inactive = false, selectedGroup: string | null = null) => {
     return <>
@@ -222,9 +324,9 @@ function MainMenu() {
                 <AnimatedWords text={e} delay={i * 80} />
               </div>
             ))
-          : "Please add title."}
+          : ui.story.missingTitle}
       </div>
-      <div className={`text-2xl content-reveal ${reenie_beanie.className}`}>
+      <div className={`text-2xl ${reenie_beanie.className}`}>
         {story.subtitle
           ? story.subtitle
             .split("\n")
@@ -233,15 +335,15 @@ function MainMenu() {
                 <AnimatedWords text={e} delay={100 + i * 80} />
               </div>
             ))
-          : "Please add subtitle."}
+          : ui.story.missingSubtitle}
       </div>
-      <div className="text-sm opacity-75 flex flex-col gap-1 content-reveal">
+      <div className="text-sm opacity-75 flex flex-col gap-1">
         <p>{story.time}</p>
         <p>{story.location}</p>
       </div>
       {dataView && story.data != null ?
         <>
-          {story.data.map((e: any, i: number) => <div key={`story-data-${i}`} className="border-black border-0 story-media-reveal">
+          {story.data.map((e: any, i: number) => <div key={`story-data-${i}`} className="border-black border-0">
             {e.image && <div className="flex items-center cursor-zoom-in mb-1">
               <img onClick={() => { setFocusData(e) }} className="w-full z-50" src={e.image} alt={e.caption ?? ""} />
             </div>}
@@ -253,115 +355,114 @@ function MainMenu() {
           <div className="text-base flex gap-1 flex-col">
             {story.text
               ? renderStoryText(story.text)
-              : "Please add text."}
+              : ui.story.missingText}
           </div>
-          {inactive !== true && !selectedGroup &&
-            <div className="text-base flex flex-row items-center gap-1 content-reveal">
-              <span>Click on the interactive objects in the drawing to find out more.</span>
-              <div><CursorArrowRaysIcon className="size-7 animate-pulse" /></div>
-            </div>}
-          <div className="text-base flex gap-1 flex-col story-media-reveal">
+          <div className="text-base flex gap-1 flex-col">
             {story.audio &&
               <PaintingAudio src={`/audio/${story.audio}`} />
             }
           </div>
           {
-            story.map && <div className="text-sm flex gap-1 flex-col z-0 story-media-reveal">
+            story.map && <div className="text-sm flex gap-1 flex-col z-0">
               <div className="h-[300px] w-full border-2 border-gray-300 rounded-md opacity-90">
-                <PaintingMap start={story.map.start} end={story.map.end} mapyear={story.map.mapyear} />
+                <PaintingMap
+                  start={story.map.start}
+                  end={story.map.end}
+                  lineString={story.map.lineString}
+                  mapyear={story.map.mapyear}
+                  ariaLabel={ui.map.historicalTravelMap}
+                />
               </div>
               <div className="opacity-75">
                 {story.map.title && <span>{story.map.title}</span>}
               </div>
             </div>
           }
+          {painting.inactive !== true && !selectedGroup &&
+            <div className="mt-7 w-full flex justify-center">
+              <div className="text-base flex flex-row items-center gap-1">
+                <div><CursorArrowRaysIcon className="size-7 animate-pulse" /></div>
+                <span className="italic text-gray-600">{ui.story.interactionPrompt}</span>
+              </div>
+            </div>}
         </>}
     </>
-  }, [])
+  }, [ui])
+
+  const viewToggle = (
+    <div className="flex justify-end mb-2" data-tutorial="data">
+      <button
+        type="button"
+        className="interface-pill-button story-view-button"
+        title={!dataView && story.data == null ? ui.navbar.dataUnavailable : undefined}
+        onClick={(event) => {
+          event.stopPropagation();
+          setDataView((currentView) => !currentView);
+        }}
+      >
+        {dataView ? ui.story.seeStory : ui.story.seeEvidenceResources}
+      </button>
+    </div>
+  );
 
   return (
     <div
-      className="grid grid-cols-1 grid-rows-[1fr_auto] overflow-hidden size-full painting-main"
+      className="grid grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden size-full painting-main"
       onClick={() => {
         dispatch(setMode("explore"));
       }}
     >
-      <div className="z-[950] fixed top-5 right-5 flex flex-col gap-2 items-end" data-tutorial="data">
-        <button
-          type="button"
-          className="flex items-center gap-1 rounded-md p-0.5 border border-gray-300 bg-white/95 text-sm text-gray-900 shadow-md backdrop-blur transition hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-gray-500 cursor-pointer w-min"
-          aria-label="Open screen tutorial"
-          aria-expanded={tutorialOpen}
-          onClick={(event) => {
-            event.stopPropagation();
-            setTutorialOpen(true);
-          }}
-        >
-          <span className="hidden sm:inline hover:visible">Tutorial</span>
-          <QuestionMarkCircleIcon className="size-5 fill-gray-600" />
-        </button>
-        {story.data != null &&
-          <button
-            type="button"
-            role="switch"
-            aria-checked={dataView}
-            aria-label={`See the ${dataView ? "story" : "data"}`}
-            className="z-50 flex items-center gap-2 rounded-m text-sm transition"
-            onClick={(event) => {
-              event.stopPropagation();
-              setDataView((currentDataView) => !currentDataView);
-            }}
-          >
-            <span>View</span>
-            <div className="grid grid-cols-2 items-center rounded-md border border-gray-400 cursor-pointer overflow-hidden">
-              <div className={`h-full p-0.5 text-center transition-colors ${dataView ? "text-gray-700 bg-white" : "bg-gray-600 text-white shadow-sm"}`}>
-                story
-              </div>
-              <div className={`h-full p-0.5 text-center transition-colors ${dataView ? "bg-gray-600 text-white shadow-sm" : "text-gray-700 bg-white"}`}>
-                data
-              </div>
-            </div>
-          </button>}
-      </div>
+      <Navbar
+        language={language}
+        tutorialOpen={tutorialOpen}
+        arMode={arMode}
+        onToggleAr={() => {
+          setStartScreenOpen(false);
+          setArMode((current) => !current);
+        }}
+        onLanguageChange={(nextLanguage) => dispatch(setLanguage(nextLanguage))}
+        onLogoClick={() => {
+          setArMode(false);
+          dispatch(setSelectedPainting(0));
+          setStartScreenOpen(true);
+        }}
+        onOpenTutorial={() => setTutorialOpen(true)}
+      />
 
-      <div className="relative size-full items-center grid grid-rows-1 grid-cols-[70%_30%] justify-center">
-        <div className="size-full" data-tutorial="painting">
-          <div className="absolute top-0 left-0 h-16 w-full z-30 flex px-2">
-            <Link
-              className="relative w-25"
-              href={"/"}
-              onClick={() => {
-                dispatch(setSelectedPainting(0));
-              }}
-            >
-              <Image
-                src="/assets/cropped-logoOctober-1.png"
-                fill={true}
-                style={{ objectFit: "contain" }}
-                sizes={"40px 40px"}
-                alt="Memorise Logo"
-              />
-            </Link>
-          </div>
+      <div className="painting-content relative grid size-full min-h-0 grid-rows-1 grid-cols-[70%_30%] items-center justify-center">
+        <div className="painting-stage size-full relative" data-tutorial="painting">
           {
-            <Painting
-              key={painting.key}
-              svgFile={painting.svgFile}
-              inactive={painting.inactive}
-              discoveredStoryKeys={discoveredStoryKeys}
-            />
+            arMode ? (
+              <ARPainting
+                key={painting.key}
+                sceneKey={painting.key}
+                svgFile={painting.svgFile}
+                language={language}
+                selectedGroup={selectedGroup}
+                onSelectGroup={(group) => dispatch(setSelectedGroup(group))}
+              />
+            ) : <>
+              <Painting
+                key={painting.key}
+                svgFile={painting.svgFile}
+                inactive={painting.inactive}
+                discoveredStoryKeys={discoveredStoryKeys}
+                missingSvgPath={ui.story.missingSvgPath}
+              />
+            </>
           }
         </div>
 
-        <div className="size-full relative" data-tutorial="story">
+        <div className="painting-story size-full relative" data-tutorial="story">
           <div className="size-full absolute top-0 left-0">
             {storyData != null && (
               <div className={`size-full opacity-80 text-gray-950 relative transition-all ${dataView ? 'bg-gray-300 border-l border-gray-400' : ''}`}>
-                <div className="absolute top-0 left-0 size-full overflow-hidden overflow-y-scroll flex items-center">
+                <div className="painting-story-scroll absolute top-0 left-0 size-full overflow-hidden overflow-y-scroll flex items-center">
                   <div
-                    key={`${selectedStoryKey}-${dataView ? "data" : "story"}`}
+                    key={`${language}-${selectedStoryKey}-${dataView ? "data" : "story"}`}
                     className="w-full max-h-full flex gap-2 flex-col p-3 px-6 story-sequence"
                   >
+                    {story.data != null && viewToggle}
                     {renderContent(story, dataView, painting.inactive, selectedGroup)}
                   </div>
                 </div>
@@ -371,7 +472,7 @@ function MainMenu() {
         </div>
       </div>
 
-      <div className="size-full" data-tutorial="timeline">
+      <div className="painting-timeline-area size-full" data-tutorial="timeline">
         {storyData && (
           <PaintingTimeline
             paintings={paintings}
@@ -393,12 +494,41 @@ function MainMenu() {
         open={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
       />
-      <div className="painting-paper-overlay absolute inset-0 pointer-events-none" />
+      {startScreenOpen && (
+        <StartScreen
+          language={language}
+          onLanguageChange={(nextLanguage) => dispatch(setLanguage(nextLanguage))}
+          onBegin={() => {
+            dispatch(setMode("explore"));
+            setStartScreenOpen(false);
+          }}
+        />
+      )}
+      <div className="painting-paper-overlay absolute inset-0 pointer-events-none z-[9999]" />
     </div>
   );
 }
 
 export default function Home() {
+  useEffect(() => {
+    const updateViewportHeight = () => {
+      const height = window.visualViewport?.height ?? window.innerHeight;
+      document.documentElement.style.setProperty(
+        "--app-viewport-height",
+        `${Math.round(height)}px`
+      );
+    };
+
+    updateViewportHeight();
+    window.addEventListener("resize", updateViewportHeight);
+    window.visualViewport?.addEventListener("resize", updateViewportHeight);
+    return () => {
+      window.removeEventListener("resize", updateViewportHeight);
+      window.visualViewport?.removeEventListener("resize", updateViewportHeight);
+      document.documentElement.style.removeProperty("--app-viewport-height");
+    };
+  }, []);
+
   return (
     <Provider store={store}>
       <MainMenu />

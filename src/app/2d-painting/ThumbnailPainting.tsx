@@ -50,13 +50,13 @@ export function ThumbnailPainting(props: ThumbnailPaintingProps) {
     borderSyle = "border-3 border-gray-400"
   }
   if (selectedGroup === elementID) {
-    borderSyle = "border-3 border-gray-600"
+    borderSyle = "border-3 border-[var(--highlight-dark)]"
   }
 
   return (
     <div
       className={`safari-rounded-clip size-12 rounded-full overflow-hidden bg-slate-50 relative cursor-pointer shadow-md items-center ${borderSyle
-        } hover:border-gray-500`}
+        } hover:border-[var(--highlight-dark)]`}
       key={`timeline-sub-entry-${elementID}`}
       onClick={(e) => {
         dispatch(setSelectedGroup(elementID));

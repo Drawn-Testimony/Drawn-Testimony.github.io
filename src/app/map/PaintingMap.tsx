@@ -20,9 +20,11 @@ type HistoricalMapFeatureCollection = FeatureCollection<Polygon | MultiPolygon, 
 type CountryLabelFeatureCollection = FeatureCollection<Point, CountryLabelProperties>;
 
 interface PaintingMapProps {
+    ariaLabel: string;
     className?: string;
     start: { lat: number, lon: number }
     end?: { lat: number, lon: number }
+    lineString?: LineString;
     mapyear?: number;
 }
 
@@ -176,9 +178,9 @@ const travelPointLayer: LayerProps = {
     id: "travel-point",
     type: "circle",
     paint: {
-        "circle-color": "#000000",
+        "circle-color": "rgb(230, 202, 173)",
         "circle-radius": 5,
-        "circle-stroke-color": "#ffffff",
+        "circle-stroke-color": "#000000",
         "circle-stroke-width": 1.5,
     },
 };
@@ -192,6 +194,77 @@ function interpolatePosition(start: LngLatPosition, end: LngLatPosition, progres
         start[0] + (end[0] - start[0]) * progress,
         start[1] + (end[1] - start[1]) * progress,
     ];
+}
+
+function isValidLngLatPosition(position: Position): position is LngLatPosition {
+    return isLngLatPosition(position)
+        && Number.isFinite(position[0])
+        && Number.isFinite(position[1])
+        && position[0] >= -180
+        && position[0] <= 180
+        && position[1] >= -90
+        && position[1] <= 90;
+}
+
+function createTravelCoordinates(
+    start: LngLatPosition,
+    end: LngLatPosition | undefined,
+    lineString: LineString | undefined
+): LngLatPosition[] {
+    const lineStringCoordinates = lineString?.type === "LineString"
+        ? lineString.coordinates.filter(isValidLngLatPosition)
+        : [];
+
+    if (lineStringCoordinates.length >= 2) {
+        return lineStringCoordinates;
+    }
+
+    return end == null ? [start, start] : [start, end];
+}
+
+function getSegmentLength(start: LngLatPosition, end: LngLatPosition) {
+    const meanLatitudeRadians = (start[1] + end[1]) * Math.PI / 360;
+    const longitudeDistance = (end[0] - start[0]) * Math.cos(meanLatitudeRadians);
+    const latitudeDistance = end[1] - start[1];
+    return Math.hypot(longitudeDistance, latitudeDistance);
+}
+
+function getPositionAlongRoute(coordinates: LngLatPosition[], progress: number) {
+    const segmentLengths = coordinates.slice(1).map((coordinate, index) => (
+        getSegmentLength(coordinates[index], coordinate)
+    ));
+    const totalLength = segmentLengths.reduce((sum, length) => sum + length, 0);
+
+    if (totalLength === 0) {
+        const position = coordinates[coordinates.length - 1];
+        return { position, coordinates: [coordinates[0], position] };
+    }
+
+    const targetLength = Math.max(0, Math.min(progress, 1)) * totalLength;
+    let travelledLength = 0;
+
+    for (let index = 0; index < segmentLengths.length; index += 1) {
+        const segmentLength = segmentLengths[index];
+
+        if (travelledLength + segmentLength >= targetLength) {
+            const segmentProgress = segmentLength === 0
+                ? 1
+                : (targetLength - travelledLength) / segmentLength;
+            const position = interpolatePosition(coordinates[index], coordinates[index + 1], segmentProgress);
+
+            return {
+                position,
+                coordinates: [...coordinates.slice(0, index + 1), position],
+            };
+        }
+
+        travelledLength += segmentLength;
+    }
+
+    return {
+        position: coordinates[coordinates.length - 1],
+        coordinates,
+    };
 }
 
 function easeInOut(progress: number) {
@@ -357,8 +430,10 @@ function getHistoricalMapUrl(mapyear?: number) {
     return `/maps/world_${getHistoricalMapYear(mapyear)}.geojson`;
 }
 
-function createTravelBounds(start: LngLatPosition, end?: LngLatPosition): TravelBounds {
-    if (end == null || (start[0] === end[0] && start[1] === end[1])) {
+function createTravelBounds(coordinates: LngLatPosition[]): TravelBounds {
+    const [start] = coordinates;
+
+    if (coordinates.every((coordinate) => coordinate[0] === start[0] && coordinate[1] === start[1])) {
         return [
             [
                 start[0] - singlePointBoundsPaddingDegrees,
@@ -371,10 +446,13 @@ function createTravelBounds(start: LngLatPosition, end?: LngLatPosition): Travel
         ];
     }
 
-    return [
-        [Math.min(start[0], end[0]), Math.min(start[1], end[1])],
-        [Math.max(start[0], end[0]), Math.max(start[1], end[1])],
-    ];
+    return coordinates.reduce<TravelBounds>(
+        (bounds, coordinate) => [
+            [Math.min(bounds[0][0], coordinate[0]), Math.min(bounds[0][1], coordinate[1])],
+            [Math.max(bounds[1][0], coordinate[0]), Math.max(bounds[1][1], coordinate[1])],
+        ],
+        [[start[0], start[1]], [start[0], start[1]]]
+    );
 }
 
 function fitMapToTravelBounds(map: TravelBoundsFitter, bounds: TravelBounds) {
@@ -518,6 +596,7 @@ function getSvgLabelFontSize(labelTier: CountryLabelProperties["labelTier"]) {
 }
 
 function PaintingMapSvgFallback({
+    ariaLabel,
     mapData,
     countryLabels,
     routeFeature,
@@ -525,6 +604,7 @@ function PaintingMapSvgFallback({
     travelPointFeature,
     travelBounds,
 }: {
+    ariaLabel: string;
     mapData: HistoricalMapFeatureCollection | null;
     countryLabels: CountryLabelFeatureCollection;
     routeFeature: Feature<LineString>;
@@ -563,7 +643,7 @@ function PaintingMapSvgFallback({
             viewBox={`${viewBox.minX} ${viewBox.minY} ${viewBox.width} ${viewBox.height}`}
             preserveAspectRatio="xMidYMid meet"
             role="img"
-            aria-label="Historical travel map"
+            aria-label={ariaLabel}
         >
             <rect
                 x={viewBox.minX}
@@ -606,39 +686,36 @@ function PaintingMapSvgFallback({
 
 export function PaintingMap(props: PaintingMapProps) {
     const mapRef = useRef<MapRef | null>(null);
-    const [animationProgress, setAnimationProgress] = useState(props.end ? 0 : 1);
+    const [animationProgress, setAnimationProgress] = useState(props.end || props.lineString ? 0 : 1);
     const [useSvgFallback, setUseSvgFallback] = useState(false);
     const [historicalMapData, setHistoricalMapData] = useState<HistoricalMapFeatureCollection | null>(null);
     const [countryLabels, setCountryLabels] = useState<CountryLabelFeatureCollection>(emptyCountryLabels);
 
     const startPosition = useMemo(() => toPosition(props.start), [props.start.lat, props.start.lon]);
     const endPosition = useMemo(() => props.end ? toPosition(props.end) : undefined, [props.end?.lat, props.end?.lon]);
-    const travelBounds = useMemo(() => createTravelBounds(startPosition, endPosition), [startPosition, endPosition]);
+    const travelCoordinates = useMemo(
+        () => createTravelCoordinates(startPosition, endPosition, props.lineString),
+        [endPosition, props.lineString, startPosition]
+    );
+    const travelBounds = useMemo(() => createTravelBounds(travelCoordinates), [travelCoordinates]);
     const historicalMapUrl = useMemo(() => getHistoricalMapUrl(props.mapyear), [props.mapyear]);
 
     const routeFeature = useMemo(() => {
-        if (endPosition == null) {
-            return createLineFeature([startPosition, startPosition]);
-        }
+        return createLineFeature(travelCoordinates);
+    }, [travelCoordinates]);
 
-        return createLineFeature([startPosition, endPosition]);
-    }, [startPosition, endPosition]);
-
-    const currentPosition = useMemo(() => {
-        if (endPosition == null) {
-            return startPosition;
-        }
-
-        return interpolatePosition(startPosition, endPosition, animationProgress);
-    }, [animationProgress, endPosition, startPosition]);
+    const currentRoute = useMemo(
+        () => getPositionAlongRoute(travelCoordinates, animationProgress),
+        [animationProgress, travelCoordinates]
+    );
 
     const animatedRouteFeature = useMemo(() => {
-        return createLineFeature([startPosition, currentPosition]);
-    }, [currentPosition, startPosition]);
+        return createLineFeature(currentRoute.coordinates);
+    }, [currentRoute.coordinates]);
 
     const travelPointFeature = useMemo(() => {
-        return createPointFeature(currentPosition);
-    }, [currentPosition]);
+        return createPointFeature(currentRoute.position);
+    }, [currentRoute.position]);
 
     useEffect(() => {
         setUseSvgFallback(!canCreateWebGlContext());
@@ -671,7 +748,7 @@ export function PaintingMap(props: PaintingMapProps) {
     }, [historicalMapUrl]);
 
     useEffect(() => {
-        if (endPosition == null) {
+        if (props.end == null && props.lineString == null) {
             setAnimationProgress(1);
             return;
         }
@@ -698,7 +775,7 @@ export function PaintingMap(props: PaintingMapProps) {
         return () => {
             window.cancelAnimationFrame(animationFrame);
         };
-    }, [endPosition]);
+    }, [props.end, props.lineString]);
 
     useEffect(() => {
         const map = mapRef.current;
@@ -714,6 +791,7 @@ export function PaintingMap(props: PaintingMapProps) {
         <div className={`painting-map size-full bg-transparent z-1 ${props.className ?? ""}`}>
             {useSvgFallback ? (
                 <PaintingMapSvgFallback
+                    ariaLabel={props.ariaLabel}
                     mapData={historicalMapData}
                     countryLabels={countryLabels}
                     routeFeature={routeFeature}

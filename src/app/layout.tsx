@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
+import { InactivityReload } from "./InactivityReload";
 
 export const metadata: Metadata = {
-  title: "Memorise",
-  description: "Memorise",
+  title: "A Danish Boy in Theresienstadt — A Drawn Testimony",
+  description: "An interactive visual testimony following Steen Metz's memories of Theresienstadt.",
 };
 
 const inter = Inter({ weight: "400", subsets: ["latin"] });
@@ -25,7 +26,8 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="grid min-h-screen h-screen max-h-screen w-screen max-w-screen overflow-hidden myText text-gray-950">
+      <body className="grid overflow-hidden myText text-gray-950">
+        <InactivityReload />
         {children}
       </body>
     </html>
